@@ -2,19 +2,84 @@
 
 
 ## Loading and preprocessing the data
-
+```{r}
+unzip('activity.zip')
+activity <- read.csv('activity.csv')
+```      
 
 
 ## What is mean total number of steps taken per day?
 
+```{r}
+daily.agg <- aggregate(steps ~ date, activity, FUN=sum)
+hist(daily.agg$steps, xlab="Steps per day")
+```
 
+Mean steps per day:
+```{r}
+mean(daily.agg$steps)
+```
+
+Median steps per day:
+```{r}
+median(daily.agg$steps)
+```
 
 ## What is the average daily activity pattern?
 
+```{r}
+interval.agg <- aggregate(steps ~ interval, activity, FUN=mean)
+plot( steps ~ interval, interval.agg, type='l', main="Steps taken over intervals throughout the day")
+```
 
+```{r}
+interval.max <- interval.agg[interval.agg$steps == max(interval.agg$steps),]
+interval.max
+```
+Maximum average steps `r interval.max$steps` occured at interval `r interval.max$interval`.
 
 ## Imputing missing values
 
+Number of missing values:
+```{r}
+sum(is.na(activity$steps))
+```
+Build a model to estimate missing values:
+```{r}
+model <- lm(steps ~ as.factor(interval), activity)
+imputed_values <- predict(model, activity[is.na(activity$steps),], type='response')
+activity[is.na(activity$steps),]$steps <- imputed_values
+```
 
+New metrics after imputing missing values:
+```{r}
+daily.agg <- aggregate(steps ~ date, activity, FUN=sum)
+hist(daily.agg$steps, xlab="Steps per day")
+```
+
+Mean steps per day:
+```{r}
+mean(daily.agg$steps)
+```
+
+Median steps per day:
+```{r}
+median(daily.agg$steps)
+```
+
+Number of missing values:
+```{r}
+sum(is.na(activity$steps))
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+library(lattice)
+library(plyr)
+activity$Weekend <-  as.factor(weekdays(as.Date(activity$date)) %in% c("Saturday", "Sunday"))
+activity$Weekend <- revalue(activity$Weekend, c("FALSE"="weekday", "TRUE"="weekend"))
+interval.agg <- aggregate(steps ~ interval + Weekend, activity, FUN=mean)
+
+xyplot(steps ~ interval|Weekend, interval.agg, layout=c(1,2), type='l')
+```
