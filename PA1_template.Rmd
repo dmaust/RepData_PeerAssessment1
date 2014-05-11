@@ -10,23 +10,24 @@ activity <- read.csv('activity.csv')
 
 ## What is mean total number of steps taken per day?
 
+The distribution of steps taken for sampled days is shown in the histogram below.
 ```{r}
 daily.agg <- aggregate(steps ~ date, activity, FUN=sum)
 hist(daily.agg$steps, xlab="Steps per day")
 ```
 
-Mean steps per day:
+
 ```{r}
-mean(daily.agg$steps)
+options(scipen=99)
+print(steps.mean <- mean(daily.agg$steps))
+print(steps.median <- median(daily.agg$steps))
 ```
 
-Median steps per day:
-```{r}
-median(daily.agg$steps)
-```
+The mean number of steps taken was `r steps.mean`, and median was `r steps.median`.
 
 ## What is the average daily activity pattern?
 
+We can also look at the average steps taken for each interval as a time series.
 ```{r}
 interval.agg <- aggregate(steps ~ interval, activity, FUN=mean)
 plot( steps ~ interval, interval.agg, type='l', main="Steps taken over intervals throughout the day")
@@ -36,7 +37,7 @@ plot( steps ~ interval, interval.agg, type='l', main="Steps taken over intervals
 interval.max <- interval.agg[interval.agg$steps == max(interval.agg$steps),]
 interval.max
 ```
-Maximum average steps `r interval.max$steps` occured at interval `r interval.max$interval`.
+The maximum average steps `r interval.max$steps` occured at interval `r interval.max$interval`.
 
 ## Imputing missing values
 
@@ -44,9 +45,9 @@ Number of missing values:
 ```{r}
 sum(is.na(activity$steps))
 ```
-Build a model to estimate missing values:
+We can then build a loess curve to estimate missing values using interval.
 ```{r}
-model <- lm(steps ~ as.factor(interval), activity)
+model <- loess(steps ~ interval, activity)
 imputed_values <- predict(model, activity[is.na(activity$steps),], type='response')
 activity[is.na(activity$steps),]$steps <- imputed_values
 ```
@@ -57,20 +58,16 @@ daily.agg <- aggregate(steps ~ date, activity, FUN=sum)
 hist(daily.agg$steps, xlab="Steps per day")
 ```
 
-Mean steps per day:
+Mean steps per day after imputing missing values:
 ```{r}
 mean(daily.agg$steps)
 ```
 
-Median steps per day:
+Median steps per day after imputing missing values:
 ```{r}
 median(daily.agg$steps)
 ```
 
-Number of missing values:
-```{r}
-sum(is.na(activity$steps))
-```
 
 ## Are there differences in activity patterns between weekdays and weekends?
 

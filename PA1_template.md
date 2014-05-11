@@ -12,6 +12,7 @@ activity <- read.csv("activity.csv")
 
 ## What is mean total number of steps taken per day?
 
+The distribution of steps taken for sampled days is shown in the histogram below.
 
 ```r
 daily.agg <- aggregate(steps ~ date, activity, FUN = sum)
@@ -21,21 +22,19 @@ hist(daily.agg$steps, xlab = "Steps per day")
 ![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
 
 
-Mean steps per day:
+
 
 ```r
-mean(daily.agg$steps)
+options(scipen = 99)
+print(steps.mean <- mean(daily.agg$steps))
 ```
 
 ```
 ## [1] 10766
 ```
 
-
-Median steps per day:
-
 ```r
-median(daily.agg$steps)
+print(steps.median <- median(daily.agg$steps))
 ```
 
 ```
@@ -43,15 +42,18 @@ median(daily.agg$steps)
 ```
 
 
+The mean number of steps taken was 10766.1887, and median was 10765.
+
 ## What is the average daily activity pattern?
 
+We can also look at the average steps taken for each interval as a time series.
 
 ```r
 interval.agg <- aggregate(steps ~ interval, activity, FUN = mean)
 plot(steps ~ interval, interval.agg, type = "l", main = "Steps taken over intervals throughout the day")
 ```
 
-![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
 
 
 
@@ -66,7 +68,7 @@ interval.max
 ## 104      835 206.2
 ```
 
-Maximum average steps 206.1698 occured at interval 835.
+The maximum average steps 206.1698 occured at interval 835.
 
 ## Imputing missing values
 
@@ -80,10 +82,10 @@ sum(is.na(activity$steps))
 ## [1] 2304
 ```
 
-Build a model to estimate missing values:
+We can then build a loess curve to estimate missing values using interval.
 
 ```r
-model <- lm(steps ~ as.factor(interval), activity)
+model <- loess(steps ~ interval, activity)
 imputed_values <- predict(model, activity[is.na(activity$steps), ], type = "response")
 activity[is.na(activity$steps), ]$steps <- imputed_values
 ```
@@ -96,40 +98,30 @@ daily.agg <- aggregate(steps ~ date, activity, FUN = sum)
 hist(daily.agg$steps, xlab = "Steps per day")
 ```
 
-![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9.png) 
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8.png) 
 
 
-Mean steps per day:
+Mean steps per day after imputing missing values:
 
 ```r
 mean(daily.agg$steps)
 ```
 
 ```
-## [1] 10766
+## [1] 10769
 ```
 
 
-Median steps per day:
+Median steps per day after imputing missing values:
 
 ```r
 median(daily.agg$steps)
 ```
 
 ```
-## [1] 10766
+## [1] 10788
 ```
 
-
-Number of missing values:
-
-```r
-sum(is.na(activity$steps))
-```
-
-```
-## [1] 0
-```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -146,5 +138,5 @@ interval.agg <- aggregate(steps ~ interval + Weekend, activity, FUN = mean)
 xyplot(steps ~ interval | Weekend, interval.agg, layout = c(1, 2), type = "l")
 ```
 
-![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13.png) 
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11.png) 
 
